@@ -1,0 +1,21 @@
+# Node
+node_modules
+npm-debug.log
+
+# Nuxt
+.nuxt
+.output
+dist
+
+# Nest
+dist
+coverage
+
+# Env
+.env
+
+# Docker
+*.log
+
+# OS
+.DS_Store
