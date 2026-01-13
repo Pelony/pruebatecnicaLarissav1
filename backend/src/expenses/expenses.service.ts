@@ -1,25 +1,22 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
-import { Expense } from './entities/expense.entity';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
+import { EXPENSES_REPOSITORY, ExpensesRepository } from './repositories/expenses.repository';
 
 @Injectable()
 export class ExpensesService {
   constructor(
-    @InjectRepository(Expense)
-    private readonly repo: Repository<Expense>,
+    @Inject(EXPENSES_REPOSITORY)
+    private readonly expensesRepo: ExpensesRepository,
   ) {}
 
-  async findAll() {
-    const data = await this.repo.find({ order: { date: 'DESC' } });
-    const total = await this.repo.count();
-    return { data, total };
+  async list() {
+    const data = await this.expensesRepo.findAll();
+    return { data, total: data.length };
   }
 
-  async findOne(id: number) {
-    const expense = await this.repo.findOne({ where: { id } });
+  async getById(id: number) {
+    const expense = await this.expensesRepo.findById(id);
     if (!expense) throw new NotFoundException('Expense not found');
     return expense;
   }
@@ -27,18 +24,16 @@ export class ExpensesService {
   async create(dto: CreateExpenseDto) {
     if (dto.amount <= 0) throw new BadRequestException('amount must be > 0');
 
-    const expense = this.repo.create({
+    return this.expensesRepo.create({
       description: dto.description.trim(),
-      amount: dto.amount.toFixed(2), // guardamos como string '10.50'
+      amount: dto.amount.toFixed(2),
       category: (dto.category ?? 'other').trim(),
       date: dto.date ? new Date(dto.date) : undefined,
     });
-
-    return this.repo.save(expense);
   }
 
   async update(id: number, dto: UpdateExpenseDto) {
-    const expense = await this.findOne(id);
+    const expense = await this.getById(id);
 
     if (dto.amount !== undefined && dto.amount <= 0) {
       throw new BadRequestException('amount must be > 0');
@@ -49,12 +44,13 @@ export class ExpensesService {
     if (dto.category !== undefined) expense.category = dto.category.trim();
     if (dto.date !== undefined) expense.date = new Date(dto.date);
 
-    return this.repo.save(expense);
+    return this.expensesRepo.save(expense);
   }
 
   async remove(id: number) {
-    const expense = await this.findOne(id);
-    await this.repo.remove(expense); // hard delete
+    // valida existencia
+    await this.getById(id);
+    await this.expensesRepo.deleteById(id);
     return { deleted: true };
   }
 
@@ -62,12 +58,7 @@ export class ExpensesService {
     const q = query?.trim();
     if (!q) throw new BadRequestException('query is required');
 
-    const data = await this.repo.find({
-      where: { description: ILike(`%${q}%`) },
-      order: { date: 'DESC' },
-      take: 50,
-    });
-
+    const data = await this.expensesRepo.searchByDescription(q);
     return { data, total: data.length };
   }
 }
