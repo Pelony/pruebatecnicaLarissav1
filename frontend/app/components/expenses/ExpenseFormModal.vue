@@ -1,97 +1,88 @@
 <script setup lang="ts">
-    import type { Expense, ExpenseCreate, ExpenseUpdate } from '~/types/expense'
-    
-    const props = defineProps<{
-      modelValue: boolean
-      mode: 'create' | 'edit'
-      initial?: Expense | null
-      saving?: boolean
-    }>()
-    
-    const emit = defineEmits<{
-      (e: 'update:modelValue', v: boolean): void
-      (e: 'submit', payload: ExpenseCreate | ExpenseUpdate): void
-    }>()
-    
-    const open = computed({
-      get: () => props.modelValue,
-      set: (v) => emit('update:modelValue', v),
-    })
-    
-    const form = reactive({
-      description: '',
-      amount: 0,
-      category: 'other',
-    })
-    
-    watch(
-      () => props.initial,
-      (val) => {
-        if (props.mode === 'edit' && val) {
-          form.description = val.description
-          form.amount = Number(val.amount)
-          form.category = val.category
-        } else {
-          form.description = ''
-          form.amount = 0
-          form.category = 'other'
-        }
-      },
-      { immediate: true },
-    )
-    
-    function onSubmit() {
-      if (props.mode === 'create') {
-        emit('submit', {
-          description: form.description,
-          amount: form.amount,
-          category: form.category,
-        } satisfies ExpenseCreate)
-      } else {
-        emit('submit', {
-          description: form.description,
-          amount: form.amount,
-          category: form.category,
-        } satisfies ExpenseUpdate)
-      }
+  import type { Expense, ExpenseCreate, ExpenseUpdate } from '~/types/expense'
+  
+  const open = defineModel<boolean>('open', { default: false })
+  
+  const props = defineProps<{
+    mode: 'create' | 'edit'
+    initial?: Expense | null
+    saving?: boolean
+  }>()
+  
+  const emit = defineEmits<{
+    (e: 'submit', payload: ExpenseCreate | ExpenseUpdate): void
+  }>()
+  
+  const form = reactive({
+    description: '',
+    amount: 0,
+    category: 'other',
+  })
+  
+  watch(open, (isOpen) => {
+    if (!isOpen) return
+  
+    if (props.mode === 'edit' && props.initial) {
+      form.description = props.initial.description ?? ''
+      form.amount = Number(props.initial.amount ?? 0)
+      form.category = props.initial.category ?? 'other'
+    } else {
+      form.description = ''
+      form.amount = 0
+      form.category = 'other'
     }
-    </script>
-    
-    <template>
-      <UModal v-model="open">
+  })
+  
+  function close() {
+    open.value = false
+  }
+  
+  function submit() {
+    emit('submit', {
+      description: form.description,
+      amount: form.amount,
+      category: form.category,
+    })
+  }
+  </script>
+  
+  <template>
+    <UModal v-model:open="open">
+      <template #content>
         <UCard>
           <template #header>
             <div class="flex items-center justify-between">
               <div class="font-semibold">
                 {{ props.mode === 'create' ? 'Nuevo gasto' : 'Editar gasto' }}
               </div>
-              <UButton icon="i-lucide-x" variant="ghost" @click="open=false" />
+              <UButton icon="i-lucide-x" variant="ghost" @click="close" />
             </div>
           </template>
-    
+  
           <div class="space-y-3">
-            <UFormGroup label="Descripción">
-              <UInput v-model="form.description" placeholder="Ej. Uber, Café..." />
-            </UFormGroup>
-    
-            <UFormGroup label="Monto">
-              <UInput v-model.number="form.amount" type="number" step="0.01" />
-            </UFormGroup>
-    
-            <UFormGroup label="Categoría">
-              <UInput v-model="form.category" placeholder="food / transport / ..." />
-            </UFormGroup>
+            <UFormField label="Descripción" name="description">
+              <UInput v-model="form.description" />
+            </UFormField>
+  
+            <UFormField label="Monto" name="amount">
+              <UInputNumber v-model="form.amount" :step="0.01" />
+            </UFormField>
+  
+            <UFormField label="Categoría" name="category">
+              <UInput v-model="form.category" />
+            </UFormField>
           </div>
-    
+  
           <template #footer>
             <div class="flex justify-end gap-2">
-              <UButton variant="ghost" :disabled="props.saving" @click="open=false">Cancelar</UButton>
-              <UButton :loading="props.saving" @click="onSubmit">
+              <UButton variant="ghost" :disabled="props.saving" @click="close">Cancelar</UButton>
+              <UButton :loading="props.saving" @click="submit">
                 {{ props.mode === 'create' ? 'Guardar' : 'Actualizar' }}
               </UButton>
             </div>
           </template>
         </UCard>
-      </UModal>
-    </template>
-    
+      </template>
+    </UModal>
+  </template>
+  

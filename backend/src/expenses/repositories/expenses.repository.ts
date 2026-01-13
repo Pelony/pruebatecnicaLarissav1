@@ -1,6 +1,15 @@
-import { Expense } from '../domain/expense.entity';
+import type { Expense } from '../domain/expense.entity';
 
 export const EXPENSES_REPOSITORY = Symbol('EXPENSES_REPOSITORY');
+
+export type FindPagedExpensesParams = {
+  page: number;
+  pageSize: number;
+  q?: string;
+  category?: string;
+  sortBy: 'date' | 'amount' | 'category' | 'description';
+  sortDir: 'ASC' | 'DESC';
+};
 
 export interface ExpensesRepository {
   findAll(): Promise<Expense[]>;
@@ -9,4 +18,5 @@ export interface ExpensesRepository {
   save(expense: Expense): Promise<Expense>;
   deleteById(id: number): Promise<void>;
   searchByDescription(query: string): Promise<Expense[]>;
+  findPaged(params: FindPagedExpensesParams): Promise<{ data: Expense[]; total: number }>;
 }

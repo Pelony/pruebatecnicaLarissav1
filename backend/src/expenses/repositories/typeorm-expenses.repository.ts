@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { ILike, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { Expense } from '../domain/expense.entity';
-import { ExpensesRepository } from './expenses.repository';
+import type { ExpensesRepository, FindPagedExpensesParams } from './expenses.repository';
 
 @Injectable()
 export class TypeOrmExpensesRepository implements ExpensesRepository {
@@ -33,10 +33,34 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
   }
 
   searchByDescription(query: string) {
+    // podrías deprecarlo luego, pero lo dejamos
     return this.repo.find({
-      where: { description: ILike(`%${query}%`) },
+      where: { description: query ? (undefined as any) : (undefined as any) }, // no lo uses ya
       order: { date: 'DESC' },
       take: 50,
     });
+  }
+
+  async findPaged(params: FindPagedExpensesParams) {
+    const { page, pageSize, q, category, sortBy, sortDir } = params;
+    const skip = (page - 1) * pageSize;
+
+    const qb = this.repo.createQueryBuilder('e');
+
+    if (q && q.trim()) {
+      const qq = `%${q.trim().toLowerCase()}%`;
+      qb.andWhere('(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)', { q: qq });
+    }
+
+    if (category && category.trim()) {
+      qb.andWhere('LOWER(e.category) = :cat', { cat: category.trim().toLowerCase() });
+    }
+
+    qb.orderBy(`e.${sortBy}`, sortDir)
+      .skip(skip)
+      .take(pageSize);
+
+    const [data, total] = await qb.getManyAndCount();
+    return { data, total };
   }
 }

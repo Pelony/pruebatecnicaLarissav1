@@ -3,6 +3,7 @@ import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { EXPENSES_REPOSITORY } from './repositories/expenses.repository';
 import type { ExpensesRepository } from './repositories/expenses.repository';
+import { ListExpensesQueryDto } from './dto/list-expenses.query'
 
 @Injectable()
 export class ExpensesService {
@@ -11,9 +12,26 @@ export class ExpensesService {
     private readonly expensesRepo: ExpensesRepository,
   ) {}
 
-  async list() {
-    const data = await this.expensesRepo.findAll();
-    return { data, total: data.length };
+  async list(query: ListExpensesQueryDto) {
+    const page = query.page ?? 1
+    const pageSize = query.pageSize ?? 10
+
+    const q = query.q?.trim() || undefined
+    const category = query.category?.trim() || undefined
+
+    const sortBy = query.sortBy ?? 'date'
+    const sortDir = query.sortDir ?? 'DESC'
+
+    const { data, total } = await this.expensesRepo.findPaged({
+      page,
+      pageSize,
+      q,
+      category,
+      sortBy,
+      sortDir,
+    })
+
+    return { data, total, page, pageSize }
   }
 
   async getById(id: number) {
