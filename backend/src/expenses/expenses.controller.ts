@@ -69,6 +69,25 @@ export class ExpensesController {
     return this.expensesService.list(query);
   }
 
+  @Get('export')
+  async export(
+    @Query() query: ListExpensesQueryDto,
+    @Query('format') format: 'csv' | 'pdf' = 'csv',
+    @Res() res: Response,
+  ) {
+    const { buffer, contentType, ext } = await this.expensesService.export(
+      query,
+      format,
+    );
+
+    const filename = `expenses-${new Date().toISOString().slice(0, 10)}.${ext}`;
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+
+    return res.send(buffer);
+  }
+
   @ApiOperation({ summary: 'Obtener gasto por id' })
   @ApiParam({ name: 'id', type: Number })
   @ApiOkResponse({ type: ExpenseResponseDto })
@@ -97,24 +116,5 @@ export class ExpensesController {
   @Delete(':id')
   remove(@Param('id', ParseIntPipe) id: number) {
     return this.expensesService.remove(id);
-  }
-
-  @Get('export')
-  async export(
-    @Query() query: ListExpensesQueryDto,
-    @Query('format') format: 'csv' | 'pdf' = 'csv',
-    @Res() res: Response,
-  ) {
-    const { buffer, contentType, ext } = await this.expensesService.export(
-      query,
-      format,
-    );
-
-    const filename = `expenses-${new Date().toISOString().slice(0, 10)}.${ext}`;
-
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
-    return res.send(buffer);
   }
 }
