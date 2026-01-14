@@ -143,17 +143,10 @@
         <div class="flex items-start justify-between gap-4">
           <div>
             <h1 class="text-2xl font-semibold">Gastos</h1>
-            <p class="text-sm opacity-70">Gestor básico (Nuxt UI + API Nest)</p>
+            <p class="text-sm opacity-70">Gestor básico de gastos</p>
           </div>
     
-          <UButton
-            icon="i-lucide-refresh-cw"
-            variant="soft"
-            :loading="loading"
-            @click="load(queryState)"
-          >
-            Recargar
-          </UButton>
+          
         </div>
     
         <UAlert v-if="errorMsg" color="red" variant="soft" :title="String(errorMsg)" />
