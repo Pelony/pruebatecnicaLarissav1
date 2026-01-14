@@ -9,13 +9,15 @@ async function bootstrap() {
 
   app.setGlobalPrefix('api');
 
-
   app.use(cookieParser());
-
 
   const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:3001',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:3001',
     'https://pruebatecnicalarissav1.onrender.com',
+    'https://pruebatecnica-larissav1.vercel.app',
   ];
 
   app.enableCors({
@@ -28,11 +30,13 @@ async function bootstrap() {
     credentials: true,
   });
 
-  app.useGlobalPipes(new ValidationPipe({
-    whitelist: true,
-    forbidNonWhitelisted: true,
-    transform: true,
-  }));
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Expense Tracker API')
