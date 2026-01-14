@@ -16,6 +16,7 @@ const props = defineProps<{
     rows: Expense[]
     total: number
     sumAmount?: string
+    categories?: string[]
     loading?: boolean
 }>()
 
@@ -29,10 +30,16 @@ const emit = defineEmits<{
 
 const UButton = resolveComponent('UButton')
 const UBadge = resolveComponent('UBadge')
-
+const category = ref<string | null>(null)
+const categoryItems = computed(() => {
+    const list = props.categories ?? []
+    return [
+        { label: 'Todas', value: null },
+        ...list.map(c => ({ label: c, value: c }))
+    ]
+})
 // UI state
 const q = ref('')
-const category = ref('')
 const sorting = ref<SortingState>([])
 const pageIndex = ref(0)
 const pageSize = ref(10)
@@ -115,7 +122,7 @@ function emitQueryChange() {
         page: pageIndex.value + 1,
         pageSize: pageSize.value,
         q: q.value.trim() || undefined,
-        category: category.value.trim() || undefined,
+        category: category.value ?? undefined,
         sortBy,
         sortDir
     })
@@ -149,7 +156,7 @@ function clearFilters() {
         <div class="flex flex-col lg:flex-row gap-3 lg:items-center lg:justify-between">
             <div class="flex flex-col sm:flex-row gap-2 sm:items-center w-full">
                 <UInput v-model="q" placeholder="Buscar…" icon="i-lucide-search" class="w-full sm:w-96" />
-                <UInput v-model="category" placeholder="Categoría…" icon="i-lucide-filter" class="w-full sm:w-64" />
+                <USelect v-model="category" :items="categoryItems" placeholder="Categoría…" class="w-full sm:w-64" />
                 <UButton variant="ghost" @click="clearFilters">Limpiar</UButton>
             </div>
 
