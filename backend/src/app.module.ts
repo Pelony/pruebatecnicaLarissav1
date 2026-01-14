@@ -4,9 +4,11 @@ import { ExpensesModule } from './expenses/expenses.module';
 import { UsersModule } from './users/users.module'
 import { AuthModule } from './auth/auth.module'
 import { AdminModule } from './admin/admin.module'
+import { ConfigModule } from '@nestjs/config'
 
 @Module({
   imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRoot({
       type: 'postgres',
       host: process.env.DB_HOST,
