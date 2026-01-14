@@ -14,14 +14,15 @@ export type PaginatedResponse<T> = {
   total: number
   page: number
   pageSize: number
+  sumAmount: string
 }
 
 export function useExpensesApi() {
   const config = useRuntimeConfig()
 
   const baseURL = import.meta.server
-    ? (config.apiInternalBaseUrl as string)       // SSR (docker): http://backend:3000
-    : (config.public.apiBaseUrl as string)        // Browser: http://localhost:3000
+    ? (config.apiInternalBaseUrl as string)       
+    : (config.public.apiBaseUrl as string)        
 
   const prefix = '/api'
 
@@ -35,7 +36,7 @@ export function useExpensesApi() {
     list: (params: ListExpensesParams = {}) =>
       api<PaginatedResponse<Expense>>('/expenses', { params }),
 
-    // ✅ Alias (si aún tienes buscador que llamaba search)
+
     search: (query: string, pageSize = 10) =>
       api<PaginatedResponse<Expense>>('/expenses', {
         params: { q: query, page: 1, pageSize },

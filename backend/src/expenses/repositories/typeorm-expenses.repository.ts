@@ -32,35 +32,48 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
     await this.repo.delete({ id });
   }
 
-  searchByDescription(query: string) {
-    // podrías deprecarlo luego, pero lo dejamos
-    return this.repo.find({
-      where: { description: query ? (undefined as any) : (undefined as any) }, // no lo uses ya
-      order: { date: 'DESC' },
-      take: 50,
-    });
+  async searchByDescription(query: string) {
+    const q = (query ?? '').trim();
+    if (!q) return [];
+
+    return this.repo
+      .createQueryBuilder('e')
+      .where('e.description ILIKE :q', { q: `%${q}%` })
+      .orderBy('e.date', 'DESC')
+      .take(50)
+      .getMany();
   }
 
   async findPaged(params: FindPagedExpensesParams) {
     const { page, pageSize, q, category, sortBy, sortDir } = params;
     const skip = (page - 1) * pageSize;
 
-    const qb = this.repo.createQueryBuilder('e');
+    // 1) Query base con filtros
+    const base = this.repo.createQueryBuilder('e');
 
     if (q && q.trim()) {
       const qq = `%${q.trim().toLowerCase()}%`;
-      qb.andWhere('(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)', { q: qq });
+      base.andWhere('(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)', { q: qq });
     }
 
     if (category && category.trim()) {
-      qb.andWhere('LOWER(e.category) = :cat', { cat: category.trim().toLowerCase() });
+      base.andWhere('LOWER(e.category) = :cat', { cat: category.trim().toLowerCase() });
     }
 
-    qb.orderBy(`e.${sortBy}`, sortDir)
+    // 2) Total (count) + Sum (sin paginar)
+    const sumQb = base.clone().select('COALESCE(SUM(e.amount), 0)', 'sum');
+    const sumRow = await sumQb.getRawOne<{ sum: string }>();
+    const sumAmount = String(sumRow?.sum ?? '0');
+
+    // 3) Data paginada
+    const dataQb = base
+      .clone()
+      .orderBy(`e.${sortBy}`, sortDir)
       .skip(skip)
       .take(pageSize);
 
-    const [data, total] = await qb.getManyAndCount();
-    return { data, total };
+    const [data, total] = await dataQb.getManyAndCount();
+
+    return { data, total, sumAmount };
   }
 }

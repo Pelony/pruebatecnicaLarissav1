@@ -11,6 +11,12 @@ export type FindPagedExpensesParams = {
   sortDir: 'ASC' | 'DESC';
 };
 
+export type FindPagedExpensesResult = {
+  data: Expense[];
+  total: number;
+  sumAmount: string; 
+};
+
 export interface ExpensesRepository {
   findAll(): Promise<Expense[]>;
   findById(id: number): Promise<Expense | null>;
@@ -18,5 +24,5 @@ export interface ExpensesRepository {
   save(expense: Expense): Promise<Expense>;
   deleteById(id: number): Promise<void>;
   searchByDescription(query: string): Promise<Expense[]>;
-  findPaged(params: FindPagedExpensesParams): Promise<{ data: Expense[]; total: number }>;
+  findPaged(params: FindPagedExpensesParams): Promise<FindPagedExpensesResult>;
 }

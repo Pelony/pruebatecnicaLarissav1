@@ -10,6 +10,7 @@
     
     const rows = ref<Expense[]>([])
     const total = ref(0)
+    const sumAmount = ref('0') // 👈 NUEVO
     
     const loading = ref(false)
     const saving = ref(false)
@@ -40,7 +41,7 @@
         const res = await api.list(state)
         rows.value = res.data
         total.value = res.total
-        // conserva el estado que se usó para cargar
+        sumAmount.value = res.sumAmount ?? '0'
         queryState.value = { ...queryState.value, ...state }
       } catch (e: any) {
         errorMsg.value = e?.data?.message || e?.message || 'Error cargando gastos'
@@ -155,6 +156,7 @@
           :rows="rows"
           :total="total"
           :loading="loading"
+          :sum-amount="sumAmount"
           @queryChange="onQueryChange"
           @refresh="() => load(queryState)"
           @create="openCreate"

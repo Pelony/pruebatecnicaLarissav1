@@ -22,7 +22,7 @@ export class ExpensesService {
     const sortBy = query.sortBy ?? 'date'
     const sortDir = query.sortDir ?? 'DESC'
 
-    const { data, total } = await this.expensesRepo.findPaged({
+    const { data, total, sumAmount } = await this.expensesRepo.findPaged({
       page,
       pageSize,
       q,
@@ -31,7 +31,7 @@ export class ExpensesService {
       sortDir,
     })
 
-    return { data, total, page, pageSize }
+    return { data, total, page, pageSize, sumAmount }
   }
 
   async getById(id: number) {
