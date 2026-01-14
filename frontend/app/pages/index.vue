@@ -101,7 +101,7 @@
         }
     
         isFormOpen.value = false
-        await load(queryState.value) // 👈 recarga con el mismo estado (página/filtros/sort)
+        await load(queryState.value)
       } catch (e: any) {
         errorMsg.value = e?.data?.message || e?.message || 'No se pudo guardar'
         toast.add({ title: 'Error', description: String(errorMsg.value), color: 'red' })

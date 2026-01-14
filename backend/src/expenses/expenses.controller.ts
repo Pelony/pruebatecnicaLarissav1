@@ -18,6 +18,10 @@ import { ListExpensesQueryDto } from './dto/list-expenses.query';
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
+  @Get('categories')
+  categories() {
+    return this.expensesService.categories();
+  }
   @Get('search')
   search(@Query('query') query: string) {
     // Internamente lo mapeamos a list paginado (page=1, pageSize=50)

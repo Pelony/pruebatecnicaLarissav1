@@ -76,4 +76,15 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
 
     return { data, total, sumAmount };
   }
+  async findCategories(): Promise<string[]> {
+    const rows = await this.repo
+      .createQueryBuilder('e')
+      .select('DISTINCT e.category', 'category')
+      .where('e.category IS NOT NULL')
+      .andWhere("TRIM(e.category) <> ''")
+      .orderBy('e.category', 'ASC')
+      .getRawMany<{ category: string }>();
+  
+    return rows.map(r => r.category);
+  }
 }

@@ -25,4 +25,5 @@ export interface ExpensesRepository {
   deleteById(id: number): Promise<void>;
   searchByDescription(query: string): Promise<Expense[]>;
   findPaged(params: FindPagedExpensesParams): Promise<FindPagedExpensesResult>;
+  findCategories(): Promise<string[]>;
 }

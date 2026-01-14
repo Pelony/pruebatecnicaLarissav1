@@ -80,4 +80,8 @@ export class ExpensesService {
     const data = await this.expensesRepo.searchByDescription(q);
     return { data, total: data.length };
   }
+  async categories() {
+    const data = await this.expensesRepo.findCategories()
+    return { data }
+  }
 }

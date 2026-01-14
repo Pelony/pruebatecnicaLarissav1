@@ -165,7 +165,7 @@ function clearFilters() {
             <div class="flex items-center gap-2">
                 <UBadge variant="subtle">{{ props.total }} gastos</UBadge>
 
-                <UBadge v-if="props.sumAmount" color="primary" variant="soft">
+                <UBadge v-if="props.sumAmount" color="info" variant="soft">
                     Total: {{ formatMoney(props.sumAmount) }}
                 </UBadge>
             </div>

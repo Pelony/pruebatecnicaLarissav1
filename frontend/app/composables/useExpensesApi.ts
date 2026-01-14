@@ -52,5 +52,7 @@ export function useExpensesApi() {
 
     remove: (id: number) =>
       api<{ deleted: true }>(`/expenses/${id}`, { method: 'DELETE' }),
+    
+    categories: () => api<{ data: string[] }>('/expenses/categories')
   }
 }
