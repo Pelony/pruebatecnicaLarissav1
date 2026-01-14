@@ -1,14 +1,24 @@
 import type { Expense, ExpenseCreate, ExpenseUpdate } from "~/types/expense";
 
 export type ListExpensesParams = {
-  page?: number;
-  pageSize?: number;
-  q?: string;
-  category?: string;
-  sortBy?: "date" | "amount" | "category" | "description";
-  sortDir?: "ASC" | "DESC";
-};
+  page?: number
+  pageSize?: number
+  q?: string
+  category?: string
+  sortBy?: "date" | "amount" | "category" | "description"
+  sortDir?: "ASC" | "DESC"
 
+  dateFrom?: string
+  dateTo?: string
+}
+export type ReportFilters = {
+  q?: string
+  category?: string
+  dateFrom?: string
+  dateTo?: string
+  groupBy?: "day" | "month"
+  top?: number
+}
 export type PaginatedResponse<T> = {
   data: T[];
   total: number;

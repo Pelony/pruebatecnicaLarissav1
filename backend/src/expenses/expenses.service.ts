@@ -43,6 +43,8 @@ export class ExpensesService {
       category,
       sortBy,
       sortDir,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
     });
 
     return { data, total, page, pageSize, sumAmount };
@@ -111,6 +113,8 @@ export class ExpensesService {
       category,
       sortBy,
       sortDir,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo, 
       limit: 5000,
     });
 

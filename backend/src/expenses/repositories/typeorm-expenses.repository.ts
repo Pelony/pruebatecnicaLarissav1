@@ -49,10 +49,10 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
   }
 
   async findPaged(params: FindPagedExpensesParams) {
-    const { page, pageSize, q, category, sortBy, sortDir } = params;
+    const { page, pageSize, q, category, sortBy, sortDir, dateFrom, dateTo } =
+      params;
     const skip = (page - 1) * pageSize;
 
-    // 1) Query base con filtros
     const base = this.repo.createQueryBuilder('e');
 
     if (q && q.trim()) {
@@ -69,12 +69,13 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
       });
     }
 
-    // 2) Total (count) + Sum (sin paginar)
+    if (dateFrom) base.andWhere('e.date >= :from', { from: dateFrom });
+    if (dateTo) base.andWhere('e.date <= :to', { to: dateTo });
+
     const sumQb = base.clone().select('COALESCE(SUM(e.amount), 0)', 'sum');
     const sumRow = await sumQb.getRawOne<{ sum: string }>();
     const sumAmount = String(sumRow?.sum ?? '0');
 
-    // 3) Data paginada
     const dataQb = base
       .clone()
       .orderBy(`e.${sortBy}`, sortDir)
@@ -97,7 +98,15 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
     return rows.map((r) => r.category);
   }
   async findForExport(params: FindExportExpensesParams) {
-    const { q, category, sortBy, sortDir, limit = 5000 } = params;
+    const {
+      q,
+      category,
+      sortBy,
+      sortDir,
+      limit = 5000,
+      dateFrom,
+      dateTo,
+    } = params;
 
     const qb = this.repo.createQueryBuilder('e');
 
@@ -115,10 +124,14 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
       });
     }
 
+    if (dateFrom) qb.andWhere('e.date >= :from', { from: dateFrom });
+    if (dateTo) qb.andWhere('e.date <= :to', { to: dateTo });
+
     qb.orderBy(`e.${sortBy}`, sortDir).take(limit);
 
     return qb.getMany();
   }
+
   async reportByCategory(params: {
     q?: string;
     category?: string;

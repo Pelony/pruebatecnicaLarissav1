@@ -10,6 +10,8 @@ export type FindPagedExpensesParams = {
   sortBy: 'date' | 'amount' | 'category' | 'description';
   sortDir: 'ASC' | 'DESC';
   limit?: number;
+  dateFrom?: Date;
+  dateTo?: Date;
 };
 
 export type FindPagedExpensesResult = {
@@ -23,6 +25,8 @@ export type FindExportExpensesParams = {
   sortBy: 'date' | 'amount' | 'category' | 'description';
   sortDir: 'ASC' | 'DESC';
   limit?: number;
+  dateFrom?: Date; 
+  dateTo?: Date; 
 };
 export type ReportByCategoryRow = {
   category: string;
