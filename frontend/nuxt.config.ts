@@ -1,12 +1,10 @@
 import tailwindcss from "@tailwindcss/vite";
 export default defineNuxtConfig({
-  modules: ['@nuxt/ui'],
-  css: ['./app/assets/css/main.css'],
+  modules: ["@nuxt/ui", "@pinia/nuxt"],
+  css: ["./app/assets/css/main.css"],
   typescript: { strict: true },
   vite: {
-    plugins: [
-      tailwindcss(),
-    ],
+    plugins: [tailwindcss()],
   },
   runtimeConfig: {
     apiInternalBaseUrl:
