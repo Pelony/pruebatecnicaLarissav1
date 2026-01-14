@@ -24,7 +24,7 @@ import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { ListExpensesQueryDto } from './dto/list-expenses.query';
-
+import { ExportExpensesQueryDto } from './dto/export-expenses.query';
 import { ExpenseResponseDto } from './dto/expense.response';
 import { PaginatedExpensesResponseDto } from './dto/paginated-expenses.response';
 
@@ -32,6 +32,21 @@ import { PaginatedExpensesResponseDto } from './dto/paginated-expenses.response'
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
+
+  @Get('export')
+  async export(@Query() query: ExportExpensesQueryDto, @Res() res: Response) {
+    const { format = 'csv', ...listQuery } = query;
+
+    const { buffer, contentType, ext } = await this.expensesService.export(
+      listQuery,
+      format,
+    );
+
+    const filename = `expenses-${new Date().toISOString().slice(0, 10)}.${ext}`;
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    return res.send(buffer);
+  }
 
   @ApiOperation({ summary: 'Lista de categorías existentes' })
   @ApiOkResponse({ schema: { example: ['food', 'transport', 'other'] } })
@@ -67,25 +82,6 @@ export class ExpensesController {
   @Get()
   list(@Query() query: ListExpensesQueryDto) {
     return this.expensesService.list(query);
-  }
-
-  @Get('export')
-  async export(
-    @Query() query: ListExpensesQueryDto,
-    @Query('format') format: 'csv' | 'pdf' = 'csv',
-    @Res() res: Response,
-  ) {
-    const { buffer, contentType, ext } = await this.expensesService.export(
-      query,
-      format,
-    );
-
-    const filename = `expenses-${new Date().toISOString().slice(0, 10)}.${ext}`;
-
-    res.setHeader('Content-Type', contentType);
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-
-    return res.send(buffer);
   }
 
   @ApiOperation({ summary: 'Obtener gasto por id' })
