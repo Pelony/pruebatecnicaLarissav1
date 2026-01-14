@@ -16,6 +16,8 @@ const loading = ref(false)
 const saving = ref(false)
 const deleting = ref(false)
 const errorMsg = ref<string | null>(null)
+const exportingCsv = ref(false)
+const exportingPdf = ref(false)
 
 // Server-side query state (la fuente de verdad)
 const queryState = ref<ListExpensesParams>({
@@ -118,6 +120,23 @@ async function loadCategories() {
         categories.value = []
     }
 }
+async function downloadCsv() {
+    exportingCsv.value = true
+    try {
+        await api.exportCsv(queryState.value)
+    } finally {
+        exportingCsv.value = false
+    }
+}
+
+async function downloadPdf() {
+    exportingPdf.value = true
+    try {
+        await api.exportPdf(queryState.value)
+    } finally {
+        exportingPdf.value = false
+    }
+}
 
 onMounted(async () => {
     await loadCategories()
@@ -159,12 +178,18 @@ onMounted(() => load(queryState.value))
                 <h1 class="text-2xl font-semibold">Gastos</h1>
                 <p class="text-sm opacity-70">Gestor básico de gastos</p>
             </div>
-
-
         </div>
 
         <UAlert v-if="errorMsg" color="red" variant="soft" :title="String(errorMsg)" />
+        <div class="flex gap-2 justify-end">
+            <UButton icon="i-lucide-file-spreadsheet" variant="soft" :loading="exportingCsv" @click="downloadCsv">
+                CSV
+            </UButton>
 
+            <UButton icon="i-lucide-file-text" variant="soft" :loading="exportingPdf" @click="downloadPdf">
+                PDF
+            </UButton>
+        </div>
         <ExpensesTable :rows="rows" :total="total" :loading="loading" :sum-amount="sumAmount" :categories="categories"
             @queryChange="onQueryChange" @refresh="() => load(queryState)" @create="openCreate" @edit="openEdit"
             @delete="openDelete" />
