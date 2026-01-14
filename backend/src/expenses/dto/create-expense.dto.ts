@@ -1,5 +1,11 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 
 export class CreateExpenseDto {
   @ApiProperty({ example: 'Café Starbucks', maxLength: 300 })
@@ -8,7 +14,7 @@ export class CreateExpenseDto {
   @MaxLength(300)
   description!: string;
 
-  @ApiProperty({ example: 120.50 })
+  @ApiProperty({ example: 120.5 })
   @IsNumber()
   amount!: number;
 

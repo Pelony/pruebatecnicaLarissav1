@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Expense } from '../domain/expense.entity';
-import type { ExpensesRepository, FindPagedExpensesParams } from './expenses.repository';
+import type {
+  ExpensesRepository,
+  FindPagedExpensesParams,
+  FindExportExpensesParams,
+} from './expenses.repository';
 
 @Injectable()
 export class TypeOrmExpensesRepository implements ExpensesRepository {
@@ -53,11 +57,16 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
 
     if (q && q.trim()) {
       const qq = `%${q.trim().toLowerCase()}%`;
-      base.andWhere('(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)', { q: qq });
+      base.andWhere(
+        '(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)',
+        { q: qq },
+      );
     }
 
     if (category && category.trim()) {
-      base.andWhere('LOWER(e.category) = :cat', { cat: category.trim().toLowerCase() });
+      base.andWhere('LOWER(e.category) = :cat', {
+        cat: category.trim().toLowerCase(),
+      });
     }
 
     // 2) Total (count) + Sum (sin paginar)
@@ -84,7 +93,30 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
       .andWhere("TRIM(e.category) <> ''")
       .orderBy('e.category', 'ASC')
       .getRawMany<{ category: string }>();
-  
-    return rows.map(r => r.category);
+
+    return rows.map((r) => r.category);
+  }
+  async findForExport(params: FindExportExpensesParams) {
+    const { q, category, sortBy, sortDir, limit = 5000 } = params;
+
+    const qb = this.repo.createQueryBuilder('e');
+
+    if (q && q.trim()) {
+      const qq = `%${q.trim().toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)',
+        { q: qq },
+      );
+    }
+
+    if (category && category.trim()) {
+      qb.andWhere('LOWER(e.category) = :cat', {
+        cat: category.trim().toLowerCase(),
+      });
+    }
+
+    qb.orderBy(`e.${sortBy}`, sortDir).take(limit);
+
+    return qb.getMany();
   }
 }

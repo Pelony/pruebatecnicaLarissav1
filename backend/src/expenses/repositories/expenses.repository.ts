@@ -9,12 +9,20 @@ export type FindPagedExpensesParams = {
   category?: string;
   sortBy: 'date' | 'amount' | 'category' | 'description';
   sortDir: 'ASC' | 'DESC';
+  limit?: number;
 };
 
 export type FindPagedExpensesResult = {
   data: Expense[];
   total: number;
-  sumAmount: string; 
+  sumAmount: string;
+};
+export type FindExportExpensesParams = {
+  q?: string;
+  category?: string;
+  sortBy: 'date' | 'amount' | 'category' | 'description';
+  sortDir: 'ASC' | 'DESC';
+  limit?: number;
 };
 
 export interface ExpensesRepository {
@@ -26,4 +34,5 @@ export interface ExpensesRepository {
   searchByDescription(query: string): Promise<Expense[]>;
   findPaged(params: FindPagedExpensesParams): Promise<FindPagedExpensesResult>;
   findCategories(): Promise<string[]>;
+  findForExport(params: FindExportExpensesParams): Promise<Expense[]>;
 }

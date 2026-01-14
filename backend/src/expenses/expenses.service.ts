@@ -1,9 +1,18 @@
-import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 import { EXPENSES_REPOSITORY } from './repositories/expenses.repository';
 import type { ExpensesRepository } from './repositories/expenses.repository';
-import { ListExpensesQueryDto } from './dto/list-expenses.query'
+import { ListExpensesQueryDto } from './dto/list-expenses.query';
+import { CsvExporter } from './export/csv.exporter';
+import { PdfExporter } from './export/pdf.exporter';
+
+type ExportFormat = 'csv' | 'pdf';
 
 @Injectable()
 export class ExpensesService {
@@ -13,14 +22,14 @@ export class ExpensesService {
   ) {}
 
   async list(query: ListExpensesQueryDto) {
-    const page = query.page ?? 1
-    const pageSize = query.pageSize ?? 10
+    const page = query.page ?? 1;
+    const pageSize = query.pageSize ?? 10;
 
-    const q = query.q?.trim() || undefined
-    const category = query.category?.trim() || undefined
+    const q = query.q?.trim() || undefined;
+    const category = query.category?.trim() || undefined;
 
-    const sortBy = query.sortBy ?? 'date'
-    const sortDir = query.sortDir ?? 'DESC'
+    const sortBy = query.sortBy ?? 'date';
+    const sortDir = query.sortDir ?? 'DESC';
 
     const { data, total, sumAmount } = await this.expensesRepo.findPaged({
       page,
@@ -29,9 +38,9 @@ export class ExpensesService {
       category,
       sortBy,
       sortDir,
-    })
+    });
 
-    return { data, total, page, pageSize, sumAmount }
+    return { data, total, page, pageSize, sumAmount };
   }
 
   async getById(id: number) {
@@ -58,7 +67,8 @@ export class ExpensesService {
       throw new BadRequestException('amount must be > 0');
     }
 
-    if (dto.description !== undefined) expense.description = dto.description.trim();
+    if (dto.description !== undefined)
+      expense.description = dto.description.trim();
     if (dto.amount !== undefined) expense.amount = dto.amount.toFixed(2);
     if (dto.category !== undefined) expense.category = dto.category.trim();
     if (dto.date !== undefined) expense.date = new Date(dto.date);
@@ -81,7 +91,38 @@ export class ExpensesService {
     return { data, total: data.length };
   }
   async categories() {
-    const data = await this.expensesRepo.findCategories()
-    return { data }
+    const data = await this.expensesRepo.findCategories();
+    return { data };
+  }
+  async export(query: ListExpensesQueryDto, format: ExportFormat) {
+    const q = query.q?.trim() || undefined;
+    const category = query.category?.trim() || undefined;
+
+    const sortBy = query.sortBy ?? 'date';
+    const sortDir = query.sortDir ?? 'DESC';
+
+    const rows = await this.expensesRepo.findForExport({
+      q,
+      category,
+      sortBy,
+      sortDir,
+      limit: 5000,
+    });
+
+    if (format === 'csv') {
+      const exporter = new CsvExporter();
+      return {
+        buffer: exporter.toBuffer(rows),
+        contentType: 'text/csv; charset=utf-8',
+        ext: 'csv',
+      };
+    }
+
+    const exporter = new PdfExporter();
+    return {
+      buffer: await exporter.toBuffer(rows),
+      contentType: 'application/pdf',
+      ext: 'pdf',
+    };
   }
 }
