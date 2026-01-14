@@ -4,7 +4,7 @@ export function useApi() {
   const auth = useAuthStore()
   const config = useRuntimeConfig()
 
-  const baseURL = config.public.apiBase as string
+  const baseURL = config.public.apiBaseUrl as string
 
   const api = async <T>(path: string, options: ApiOptions = {}): Promise<T> => {
     const url = path.startsWith('http') ? path : `${baseURL}${path.startsWith('/') ? '' : '/'}${path}`
