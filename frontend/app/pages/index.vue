@@ -170,7 +170,7 @@ onMounted(() => load(queryState.value))
             @delete="openDelete" />
 
         <ExpenseFormModal v-model:open="isFormOpen" :mode="formMode" :initial="selected" :saving="saving"
-            @submit="onSubmit" />
+            :categories="categories" @submit="onSubmit" />
 
         <DeleteConfirmModal v-model:open="isDeleteOpen" :loading="deleting" title="Eliminar gasto"
             message="¿Seguro que deseas eliminar este gasto?" @confirm="confirmDelete" />
