@@ -3,7 +3,7 @@ export function useAuth() {
     const api = useApi()
   
     async function login(email: string, password: string) {
-      const res = await api<{ accessToken: string; user: any }>('/auth/login', {
+      const res = await api<{ accessToken: string; user: any }>('/api/auth/login', {
         method: 'POST',
         body: { email, password },
       })

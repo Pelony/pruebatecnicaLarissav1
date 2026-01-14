@@ -24,7 +24,7 @@ export function useApi() {
       return await doFetch(auth.accessToken)
     } catch (e: any) {
       const status = e?.response?.status ?? e?.status
-      const isAuthEndpoint = url.includes('/auth/login') || url.includes('/auth/refresh')
+      const isAuthEndpoint = url.includes('/api/auth/login') || url.includes('/api/auth/refresh')
 
       if (status !== 401 || isAuthEndpoint) {
         throw e
@@ -32,7 +32,7 @@ export function useApi() {
 
       // intento refresh 1 vez
       try {
-        const refreshed = await $fetch<{ accessToken: string; user: any }>(`${baseURL}/auth/refresh`, {
+        const refreshed = await $fetch<{ accessToken: string; user: any }>(`${baseURL}/api/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
         })
