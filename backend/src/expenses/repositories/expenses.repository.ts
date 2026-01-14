@@ -24,6 +24,17 @@ export type FindExportExpensesParams = {
   sortDir: 'ASC' | 'DESC';
   limit?: number;
 };
+export type ReportByCategoryRow = {
+  category: string;
+  total: string; // sum(amount)
+  count: number;
+};
+
+export type ReportByDateRow = {
+  period: string; // '2026-01-14' o '2026-01'
+  total: string;
+  count: number;
+};
 
 export interface ExpensesRepository {
   findAll(): Promise<Expense[]>;
@@ -35,4 +46,18 @@ export interface ExpensesRepository {
   findPaged(params: FindPagedExpensesParams): Promise<FindPagedExpensesResult>;
   findCategories(): Promise<string[]>;
   findForExport(params: FindExportExpensesParams): Promise<Expense[]>;
+  reportByCategory(params: {
+    q?: string;
+    category?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }): Promise<ReportByCategoryRow[]>;
+
+  reportByDate(params: {
+    q?: string;
+    category?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    groupBy: 'day' | 'month';
+  }): Promise<ReportByDateRow[]>;
 }

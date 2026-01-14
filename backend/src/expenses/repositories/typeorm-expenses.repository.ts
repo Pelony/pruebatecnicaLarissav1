@@ -119,4 +119,92 @@ export class TypeOrmExpensesRepository implements ExpensesRepository {
 
     return qb.getMany();
   }
+  async reportByCategory(params: {
+    q?: string;
+    category?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+  }) {
+    const qb = this.repo.createQueryBuilder('e');
+
+    if (params.q?.trim()) {
+      const qq = `%${params.q.trim().toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)',
+        { q: qq },
+      );
+    }
+
+    if (params.category?.trim()) {
+      qb.andWhere('LOWER(e.category) = :cat', {
+        cat: params.category.trim().toLowerCase(),
+      });
+    }
+
+    if (params.dateFrom)
+      qb.andWhere('e.date >= :from', { from: params.dateFrom });
+    if (params.dateTo) qb.andWhere('e.date <= :to', { to: params.dateTo });
+
+    const rows = await qb
+      .select('e.category', 'category')
+      .addSelect('COUNT(*)::int', 'count')
+      .addSelect('COALESCE(SUM(e.amount), 0)', 'total')
+      .groupBy('e.category')
+      .orderBy('total', 'DESC')
+      .getRawMany<{ category: string; count: number; total: string }>();
+
+    return rows.map((r) => ({
+      category: r.category ?? 'other',
+      count: Number(r.count ?? 0),
+      total: String(r.total ?? '0'),
+    }));
+  }
+
+  async reportByDate(params: {
+    q?: string;
+    category?: string;
+    dateFrom?: Date;
+    dateTo?: Date;
+    groupBy: 'day' | 'month';
+  }) {
+    const qb = this.repo.createQueryBuilder('e');
+
+    if (params.q?.trim()) {
+      const qq = `%${params.q.trim().toLowerCase()}%`;
+      qb.andWhere(
+        '(LOWER(e.description) LIKE :q OR LOWER(e.category) LIKE :q)',
+        { q: qq },
+      );
+    }
+
+    if (params.category?.trim()) {
+      qb.andWhere('LOWER(e.category) = :cat', {
+        cat: params.category.trim().toLowerCase(),
+      });
+    }
+
+    if (params.dateFrom)
+      qb.andWhere('e.date >= :from', { from: params.dateFrom });
+    if (params.dateTo) qb.andWhere('e.date <= :to', { to: params.dateTo });
+
+    // Postgres: date_trunc
+    const trunc = params.groupBy === 'month' ? 'month' : 'day';
+
+    const rows = await qb
+      .select(
+        `to_char(date_trunc('${trunc}', e.date), '${params.groupBy === 'month' ? 'YYYY-MM' : 'YYYY-MM-DD'}')`,
+        'period',
+      )
+      .addSelect('COUNT(*)::int', 'count')
+      .addSelect('COALESCE(SUM(e.amount), 0)', 'total')
+      .groupBy('period')
+      .orderBy('period', 'ASC')
+      .getRawMany<{ period: string; count: number; total: string }>();
+
+    return rows.map((r) => ({
+      period: String(r.period),
+      count: Number(r.count ?? 0),
+      total: String(r.total ?? '0'),
+    }));
+  }
 }

@@ -11,6 +11,11 @@ import type { ExpensesRepository } from './repositories/expenses.repository';
 import { ListExpensesQueryDto } from './dto/list-expenses.query';
 import { CsvExporter } from './export/csv.exporter';
 import { PdfExporter } from './export/pdf.exporter';
+import { ReportByDateQueryDto, ReportQueryDto } from './dto/report.query';
+import {
+  ReportByCategoryRow,
+  ReportByDateRow,
+} from './repositories/expenses.repository';
 
 type ExportFormat = 'csv' | 'pdf';
 
@@ -124,5 +129,28 @@ export class ExpensesService {
       contentType: 'application/pdf',
       ext: 'pdf',
     };
+  }
+  async reportByCategory(
+    query: ReportQueryDto,
+  ): Promise<{ data: ReportByCategoryRow[] }> {
+    const data = await this.expensesRepo.reportByCategory({
+      q: query.q?.trim() || undefined,
+      category: query.category?.trim() || undefined,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
+    });
+    return { data };
+  }
+  async reportByDate(
+    query: ReportByDateQueryDto,
+  ): Promise<{ data: ReportByDateRow[] }> {
+    const data = await this.expensesRepo.reportByDate({
+      q: query.q?.trim() || undefined,
+      category: query.category?.trim() || undefined,
+      dateFrom: query.dateFrom,
+      dateTo: query.dateTo,
+      groupBy: query.groupBy ?? 'day',
+    });
+    return { data };
   }
 }

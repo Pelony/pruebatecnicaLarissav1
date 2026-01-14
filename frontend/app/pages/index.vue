@@ -4,6 +4,7 @@ import ExpensesTable from '~/components/expenses/ExpensesTable.vue'
 import ExpenseFormModal from '~/components/expenses/ExpenseFormModal.vue'
 import DeleteConfirmModal from '~/components/expenses/DeleteConfirmModal.vue'
 import type { ListExpensesParams } from '~/composables/useExpensesApi'
+import ExpensesCharts from '~/components/expenses/ExpensesCharts.vue'
 
 const api = useExpensesApi()
 const toast = useToast()
@@ -32,7 +33,6 @@ const queryState = ref<ListExpensesParams>({
 const isFormOpen = ref(false)
 const formMode = ref<'create' | 'edit'>('create')
 const selected = ref<Expense | null>(null)
-
 const isDeleteOpen = ref(false)
 const selectedToDelete = ref<Expense | null>(null)
 
@@ -193,7 +193,7 @@ onMounted(() => load(queryState.value))
         <ExpensesTable :rows="rows" :total="total" :loading="loading" :sum-amount="sumAmount" :categories="categories"
             @queryChange="onQueryChange" @refresh="() => load(queryState)" @create="openCreate" @edit="openEdit"
             @delete="openDelete" />
-
+        <ExpensesCharts :params="{ q: queryState.q, category: queryState.category }" />
         <ExpenseFormModal v-model:open="isFormOpen" :mode="formMode" :initial="selected" :saving="saving"
             :categories="categories" @submit="onSubmit" />
 

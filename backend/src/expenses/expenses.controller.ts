@@ -27,12 +27,24 @@ import { ListExpensesQueryDto } from './dto/list-expenses.query';
 import { ExportExpensesQueryDto } from './dto/export-expenses.query';
 import { ExpenseResponseDto } from './dto/expense.response';
 import { PaginatedExpensesResponseDto } from './dto/paginated-expenses.response';
+import { ReportByDateQueryDto, ReportQueryDto } from './dto/report.query';
 
 @ApiTags('expenses')
 @Controller('expenses')
 export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
+  @ApiOperation({ summary: 'Reporte: suma por categoría' })
+  @Get('reports/by-category')
+  reportByCategory(@Query() q: ReportQueryDto) {
+    return this.expensesService.reportByCategory(q);
+  }
+
+  @ApiOperation({ summary: 'Reporte: serie por fecha (day|month)' })
+  @Get('reports/by-date')
+  reportByDate(@Query() q: ReportByDateQueryDto) {
+    return this.expensesService.reportByDate(q);
+  }
   @Get('export')
   async export(@Query() query: ExportExpensesQueryDto, @Res() res: Response) {
     const { format = 'csv', ...listQuery } = query;

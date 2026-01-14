@@ -16,6 +16,12 @@ export type PaginatedResponse<T> = {
   pageSize: number;
   sumAmount: string;
 };
+export type ReportByCategoryRow = {
+  category: string;
+  total: string;
+  count: number;
+};
+export type ReportByDateRow = { period: string; total: string; count: number };
 
 function downloadBlob(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
@@ -87,5 +93,27 @@ export function useExpensesApi() {
 
     exportPdf: (params: ListExpensesParams = {}) =>
       exportFile("pdf", "expenses.pdf", params),
+    reportByCategory: (
+      params: {
+        q?: string;
+        category?: string;
+        dateFrom?: string;
+        dateTo?: string;
+      } = {}
+    ) =>
+      api<{ data: ReportByCategoryRow[] }>("/expenses/reports/by-category", {
+        params,
+      }),
+
+    reportByDate: (
+      params: {
+        q?: string;
+        category?: string;
+        dateFrom?: string;
+        dateTo?: string;
+        groupBy?: "day" | "month";
+      } = {}
+    ) =>
+      api<{ data: ReportByDateRow[] }>("/expenses/reports/by-date", { params }),
   };
 }
