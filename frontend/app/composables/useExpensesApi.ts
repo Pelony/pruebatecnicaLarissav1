@@ -1,24 +1,24 @@
 import type { Expense, ExpenseCreate, ExpenseUpdate } from "~/types/expense";
 
 export type ListExpensesParams = {
-  page?: number
-  pageSize?: number
-  q?: string
-  category?: string
-  sortBy?: "date" | "amount" | "category" | "description"
-  sortDir?: "ASC" | "DESC"
+  page?: number;
+  pageSize?: number;
+  q?: string;
+  category?: string;
+  sortBy?: "date" | "amount" | "category" | "description";
+  sortDir?: "ASC" | "DESC";
 
-  dateFrom?: string
-  dateTo?: string
-}
+  dateFrom?: string;
+  dateTo?: string;
+};
 export type ReportFilters = {
-  q?: string
-  category?: string
-  dateFrom?: string
-  dateTo?: string
-  groupBy?: "day" | "month"
-  top?: number
-}
+  q?: string;
+  category?: string;
+  dateFrom?: string;
+  dateTo?: string;
+  groupBy?: "day" | "month";
+  top?: number;
+};
 export type PaginatedResponse<T> = {
   data: T[];
   total: number;
@@ -81,7 +81,7 @@ export function useExpensesApi() {
     // ✅ Server-side list con paginación y filtros
     list: (params: ListExpensesParams = {}) =>
       api<PaginatedResponse<Expense>>("/expenses", { params }),
-
+    categories: () => api<{ data: string[] }>("/expenses/categories"),
     search: (query: string, pageSize = 10) =>
       api<PaginatedResponse<Expense>>("/expenses", {
         params: { q: query, page: 1, pageSize },

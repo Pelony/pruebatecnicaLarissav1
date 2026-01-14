@@ -30,7 +30,6 @@ const filters = ref<FiltersState>({
     dateFrom: undefined,
     dateTo: undefined,
     groupBy: 'month',
-    top: 10,
 })
 
 // ✅ Estado exclusivo de tabla (paginación + sort)
@@ -41,7 +40,8 @@ const tableState = ref({
     sortDir: 'DESC' as 'ASC' | 'DESC',
 })
 
-// ✅ params que se mandan a /expenses
+// ✅ params que se mandan a /expenses (OJO: tu list endpoint NO filtra por fecha en backend actual)
+// si luego lo agregas, ya está listo.
 const listParams = computed(() => ({
     page: tableState.value.page,
     pageSize: tableState.value.pageSize,
@@ -49,9 +49,6 @@ const listParams = computed(() => ({
     sortDir: tableState.value.sortDir,
     q: filters.value.q,
     category: filters.value.category,
-    // si tu backend ya lo soporta en list:
-    dateFrom: filters.value.dateFrom,
-    dateTo: filters.value.dateTo,
 }))
 
 async function loadCategories() {
@@ -89,7 +86,7 @@ watch(
 )
 
 // Eventos desde tabla (solo paginación/sort)
-function onTableChange(next: {
+function onTableQueryChange(next: {
     page: number
     pageSize: number
     sortBy: 'date' | 'amount' | 'category' | 'description'
@@ -178,22 +175,30 @@ async function confirmDelete() {
     }
 }
 
-// Exports
+// Exports: exporta TODO lo filtrado (sin page/pageSize)
 async function downloadCsv() {
     exportingCsv.value = true
     try {
-        // exporta TODO lo filtrado (no solo página)
-        const { page, pageSize, ...rest } = listParams.value as any
-        await api.exportCsv(rest)
+        await api.exportCsv({
+            q: filters.value.q,
+            category: filters.value.category,
+            sortBy: tableState.value.sortBy,
+            sortDir: tableState.value.sortDir,
+        })
     } finally {
         exportingCsv.value = false
     }
 }
+
 async function downloadPdf() {
     exportingPdf.value = true
     try {
-        const { page, pageSize, ...rest } = listParams.value as any
-        await api.exportPdf(rest)
+        await api.exportPdf({
+            q: filters.value.q,
+            category: filters.value.category,
+            sortBy: tableState.value.sortBy,
+            sortDir: tableState.value.sortDir,
+        })
     } finally {
         exportingPdf.value = false
     }
@@ -231,7 +236,8 @@ onMounted(async () => {
         <!-- ✅ Tabla: solo paginación / sorting -->
         <ExpensesTable :rows="rows" :total="total" :sum-amount="sumAmount" :loading="loading" :page="tableState.page"
             :page-size="tableState.pageSize" :sort-by="tableState.sortBy" :sort-dir="tableState.sortDir"
-            @change="onTableChange" @refresh="load" @create="openCreate" @edit="openEdit" @delete="openDelete" />
+            @queryChange="onTableQueryChange" @refresh="load" @create="openCreate" @edit="openEdit"
+            @delete="openDelete" />
 
         <!-- ✅ Charts con los mismos filtros -->
         <ExpensesCharts :params="{
@@ -239,8 +245,7 @@ onMounted(async () => {
             category: filters.category,
             dateFrom: filters.dateFrom,
             dateTo: filters.dateTo,
-            groupBy: filters.groupBy,
-            top: filters.top
+            groupBy: filters.groupBy
         }" />
 
         <ExpenseFormModal v-model:open="isFormOpen" :mode="formMode" :initial="selected" :saving="saving"

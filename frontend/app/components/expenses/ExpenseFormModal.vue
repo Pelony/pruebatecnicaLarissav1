@@ -8,7 +8,7 @@
     mode: 'create' | 'edit'
     initial?: Expense | null
     saving?: boolean
-    categories?: string[] // 👈 NUEVO
+    categories?: string[] 
   }>()
   
   const emit = defineEmits<{
