@@ -1,19 +1,29 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.setGlobalPrefix('api');
-  app.enableCors({ origin: true }); // permite requests desde cualquier origen
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,            // elimina campos extra
-      forbidNonWhitelisted: true, // error si mandan campos no permitidos
-      transform: true,            // convierte tipos (query params)
-    }),
-  );
+  app.enableCors({ origin: true });
+
+  app.useGlobalPipes(new ValidationPipe({
+    whitelist: true,
+    forbidNonWhitelisted: true,
+    transform: true,
+  }));
+
+  const config = new DocumentBuilder()
+    .setTitle('Expense Tracker API')
+    .setDescription('API para gestión de gastos')
+    .setVersion('1.0.0')
+    .addBearerAuth() 
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('docs', app, document); 
 
   await app.listen(process.env.PORT || 3000);
 }
