@@ -28,17 +28,14 @@ export class AuthController {
       dto.password,
     );
 
-    const isProd = process.env.NODE_ENV === 'production';
-    const secure = isProd ? true : false;
 
     res.cookie('refresh_token', refreshToken, {
       httpOnly: true,
-      secure,
-      sameSite: secure ? 'none' : 'lax',
-      domain: secure ? process.env.COOKIE_DOMAIN || undefined : undefined,
+      secure: true,
+      sameSite: 'none',
       path: '/api/auth/refresh',
       maxAge: 14 * 24 * 60 * 60 * 1000,
-    });
+    })
 
     return { accessToken, user };
   }
@@ -56,8 +53,7 @@ export class AuthController {
     await this.auth.logout(req.user.sub);
     res.clearCookie('refresh_token', {
       path: '/api/auth/refresh',
-      domain: process.env.COOKIE_DOMAIN || undefined,
-    });
+    })
     return { ok: true };
   }
 
