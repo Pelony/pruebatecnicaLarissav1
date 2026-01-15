@@ -18,7 +18,7 @@ export class AuthController {
       sameSite: 'lax',
       secure: noticeSecure,
       domain: process.env.COOKIE_DOMAIN || undefined,
-      path: '/auth/refresh',
+      path: '/api/auth/refresh',
       maxAge: 14 * 24 * 60 * 60 * 1000,
     })
 
@@ -36,7 +36,7 @@ export class AuthController {
   @UseGuards(AccessJwtGuard)
   async logout(@Req() req: any, @Res({ passthrough: true }) res: Response) {
     await this.auth.logout(req.user.sub)
-    res.clearCookie('refresh_token', { path: '/auth/refresh', domain: process.env.COOKIE_DOMAIN || undefined })
+    res.clearCookie('refresh_token', { path: '/api/auth/refresh', domain: process.env.COOKIE_DOMAIN || undefined })
     return { ok: true }
   }
 
