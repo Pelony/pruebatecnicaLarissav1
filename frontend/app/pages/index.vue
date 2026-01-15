@@ -211,7 +211,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <div class="p-6 max-w-6xl mx-auto space-y-4">
+    <div class="max-w-6xl mx-auto space-y-4">
         <div class="flex items-start justify-between gap-4">
             <div>
                 <h1 class="text-2xl font-semibold">Gastos</h1>

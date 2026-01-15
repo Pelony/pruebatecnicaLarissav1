@@ -1,50 +1,57 @@
-type ApiOptions = Parameters<typeof $fetch>[1]
+type ApiOptions = Parameters<typeof $fetch>[1];
 
 export function useApi() {
-  const auth = useAuthStore()
-  const config = useRuntimeConfig()
+  const auth = useAuthStore();
+  const config = useRuntimeConfig();
 
-  const baseURL = config.public.apiBaseUrl as string
+  const baseURL = String(config.public.apiBaseUrl || "").replace(/\/$/, "");
+  if (!baseURL) throw new Error("Missing runtimeConfig.public.apiBaseUrl");
 
   const api = async <T>(path: string, options: ApiOptions = {}): Promise<T> => {
-    const url = path.startsWith('http') ? path : `${baseURL}${path.startsWith('/') ? '' : '/'}${path}`
+    const url = path.startsWith("http")
+      ? path
+      : `${baseURL}${path.startsWith("/") ? "" : "/"}${path}`;
 
     const doFetch = (token?: string | null) => {
-      const headers = new Headers(options.headers as HeadersInit | undefined)
-      if (token) headers.set('Authorization', `Bearer ${token}`)
+      const headers = new Headers(options.headers as HeadersInit | undefined);
+      if (token) headers.set("Authorization", `Bearer ${token}`);
 
       return $fetch<T>(url, {
         ...options,
-        credentials: 'include', 
+        credentials: "include",
         headers,
-      })
-    }
+      });
+    };
 
     try {
-      return await doFetch(auth.accessToken)
+      return await doFetch(auth.accessToken);
     } catch (e: any) {
-      const status = e?.response?.status ?? e?.status
-      const isAuthEndpoint = url.includes('/api/auth/login') || url.includes('/api/auth/refresh')
+      const status = e?.response?.status ?? e?.status;
 
-      if (status !== 401 || isAuthEndpoint) {
-        throw e
-      }
+      const isAuthEndpoint =
+        url.includes("/api/auth/login") ||
+        url.includes("/api/auth/refresh") ||
+        url.includes("/api/auth/logout");
 
-      // intento refresh 1 vez
+      if (status !== 401 || isAuthEndpoint) throw e;
+
       try {
-        const refreshed = await $fetch<{ accessToken: string; user: any }>(`${baseURL}/api/auth/refresh`, {
-          method: 'POST',
-          credentials: 'include',
-        })
+        const refreshed = await $fetch<{ accessToken: string; user: any }>(
+          `${baseURL}/api/auth/refresh`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
 
-        auth.setSession(refreshed)
-        return await doFetch(auth.accessToken)
-      } catch (refreshErr) {
-        auth.clearSession()
-        throw e
+        auth.setSession(refreshed);
+        return await doFetch(auth.accessToken);
+      } catch {
+        auth.clearSession();
+        throw e;
       }
     }
-  }
+  };
 
-  return api
+  return api;
 }
