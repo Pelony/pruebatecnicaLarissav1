@@ -41,6 +41,7 @@ export function useApi() {
           {
             method: "POST",
             credentials: "include",
+            headers: process.server ? useRequestHeaders(['cookie']) : undefined
           }
         );
 

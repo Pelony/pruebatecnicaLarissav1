@@ -1,26 +1,26 @@
 <script setup lang="ts">
 definePageMeta({ layout: 'auth' })
-import { useAuthStore } from '~/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
-const auth = useAuthStore()
 const { login } = useAuth()
 
-watchEffect(() => {
-    if (auth.isLoggedIn) router.replace('/')
-})
+const redirecting = ref(false)
 
 async function handleSubmit(payload: { email: string; password: string }) {
     await login(payload.email, payload.password)
+
+    redirecting.value = true
+
     const next = typeof route.query.next === 'string' ? route.query.next : '/'
     await router.replace(next)
 }
 </script>
 
+
 <template>
     <div class="min-h-screen flex items-center justify-center p-6">
-        <div class="w-full max-w-md">
+        <div class="relative w-full max-w-md">
             <UCard>
                 <template #header>
                     <div class="space-y-1">
@@ -31,9 +31,17 @@ async function handleSubmit(payload: { email: string; password: string }) {
                     </div>
                 </template>
 
-                <!-- ✅ OJO: AuthForm (no Authform) -->
                 <Authform @submit="handleSubmit" />
             </UCard>
+
+            <!-- 🔄 Overlay de redirección -->
+            <div v-if="redirecting" class="absolute inset-0 bg-background/80 backdrop-blur-sm
+                     flex items-center justify-center z-50 rounded-lg">
+                <div class="flex items-center gap-3 text-sm">
+                    <UIcon name="i-lucide-loader-circle" class="size-5 animate-spin text-primary" />
+                    <span>Sesión iniciada, redirigiendo…</span>
+                </div>
+            </div>
         </div>
     </div>
 </template>

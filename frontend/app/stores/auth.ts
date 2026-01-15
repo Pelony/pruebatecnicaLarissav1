@@ -6,7 +6,6 @@ export const useAuthStore = defineStore("auth", () => {
   const accessToken = ref<string | null>(null);
   const user = ref<AuthUser | null>(null);
 
-  // 👇 clave: para no reintentar refresh en cada navegación
   const initialized = ref(false);
   const initializing = ref<Promise<void> | null>(null);
 
@@ -23,19 +22,14 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function init() {
-    if (initialized.value) return;
-    if (initializing.value) return initializing.value;
+    if (initialized.value || initializing.value) return;
 
     initializing.value = (async () => {
       try {
         const api = useApi();
-        const headers = process.server
-          ? useRequestHeaders(["cookie"])
-          : undefined;
-
         const res = await api<{ accessToken: string; user: AuthUser }>(
           "/api/auth/refresh",
-          { method: "POST", headers }
+          { method: "POST" }
         );
 
         setSession(res);
